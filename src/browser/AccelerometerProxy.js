@@ -19,24 +19,51 @@
  *
 */
 
-
-function listener(success) {
+function listener(event, success) {
+    var userAccelerationX = 0.0,
+        userAccelerationY = 0.0,
+        userAccelerationZ = 0.0,
+        rotationX = 0.0,
+        rotationY = 0.0,
+        rotationZ = 0.0,
+        yaw = 0.0,
+        pitch = 0.0,
+        roll = 0.0;
+    if (event instanceof CustomEvent && event.detail) {
+        userAccelerationX = event.detail.userAccelerationX || userAccelerationX;
+        userAccelerationY = event.detail.userAccelerationY || userAccelerationY;
+        userAccelerationZ = event.detail.userAccelerationZ || userAccelerationZ;
+        rotationX = event.detail.rotationX || rotationX;
+        rotationY = event.detail.rotationY || rotationY;
+        rotationZ = event.detail.rotationZ || rotationZ;
+        yaw = event.detail.yaw || yaw;
+        pitch = event.detail.pitch || pitch;
+        roll = event.detail.roll || roll;
+    }
     var accel = {};
 
     accel.x = (Math.round(((Math.random() * 2) - 1) * 100) / 100);
     accel.y = (Math.round(((Math.random() * 2) - 1) * 100) / 100);
     accel.z = (Math.round(((Math.random() * 2) - 1) * 100) / 100);
+    accel.userAccelerationX = userAccelerationX;
+    accel.userAccelerationY = userAccelerationY;
+    accel.userAccelerationZ = userAccelerationZ;
+    accel.rotationX = rotationX;
+    accel.rotationY = rotationY;
+    accel.rotationZ = rotationZ;
+    accel.yaw = yaw;
+    accel.pitch = pitch;
+    accel.roll = roll;
     accel.timestamp = new Date().getTime();
 
     success(accel);
 
-    window.removeEventListener('devicemotion', listener, false);
 }
 
 var Accelerometer = {
     start: function start(success, error) {
-        return window.addEventListener('devicemotion', function(){
-            listener(success);
+        return window.addEventListener('devicemotion', function(event){
+            listener(event, success);
         }, false);
     }
 };
