@@ -25,6 +25,15 @@
     double x;
     double y;
     double z;
+    double userAccelerationX;
+    double userAccelerationY;
+    double userAccelerationZ;
+    double rotationX;
+    double rotationY;
+    double rotationZ;
+    double yaw;
+    double pitch;
+    double roll;
     NSTimeInterval timestamp;
 }
 

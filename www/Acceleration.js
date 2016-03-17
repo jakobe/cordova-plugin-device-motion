@@ -19,10 +19,19 @@
  *
 */
 
-var Acceleration = function(x, y, z, timestamp) {
+var Acceleration = function(x, y, z, userAccelerationX, userAccelerationY, userAccelerationZ, rotationX, rotationY, rotationZ, yaw, pitch, roll, timestamp) {
     this.x = x;
     this.y = y;
     this.z = z;
+    this.userAccelerationX = userAccelerationX;
+    this.userAccelerationY = userAccelerationY;
+    this.userAccelerationZ = userAccelerationZ;
+    this.rotationX = rotationX;
+    this.rotationY = rotationY;
+    this.rotationZ = rotationZ;
+    this.yaw = yaw;
+    this.pitch = pitch;
+    this.roll = roll;
     this.timestamp = timestamp || (new Date()).getTime();
 };
 

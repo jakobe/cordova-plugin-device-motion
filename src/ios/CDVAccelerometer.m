@@ -27,15 +27,24 @@
 @property (readwrite, assign) double x;
 @property (readwrite, assign) double y;
 @property (readwrite, assign) double z;
+@property (readwrite, assign) double userAccelerationX;
+@property (readwrite, assign) double userAccelerationY;
+@property (readwrite, assign) double userAccelerationZ;
+@property (readwrite, assign) double rotationX;
+@property (readwrite, assign) double rotationY;
+@property (readwrite, assign) double rotationZ;
+@property (readwrite, assign) double yaw;
+@property (readwrite, assign) double pitch;
+@property (readwrite, assign) double roll;
 @property (readwrite, assign) NSTimeInterval timestamp;
 @end
 
 @implementation CDVAccelerometer
 
-@synthesize callbackId, isRunning,x,y,z,timestamp;
+@synthesize callbackId, isRunning,x,y,z,userAccelerationX,userAccelerationY,userAccelerationZ,rotationX,rotationY,rotationZ,yaw,pitch,roll,timestamp;
 
 // defaults to 10 msec
-#define kAccelerometerInterval 10
+#define kDeviceMotionInterval 10
 // g constant: -9.81 m/s^2
 #define kGravitationalConstant -9.81
 
@@ -46,6 +55,15 @@
         self.x = 0;
         self.y = 0;
         self.z = 0;
+        self.userAccelerationX = 0;
+        self.userAccelerationY = 0;
+        self.userAccelerationZ = 0;
+        self.rotationX = 0;
+        self.rotationY = 0;
+        self.rotationZ = 0;
+        self.yaw = 0;
+        self.pitch = 0;
+        self.roll = 0;
         self.timestamp = 0;
         self.callbackId = nil;
         self.isRunning = NO;
@@ -70,14 +88,23 @@
         self.motionManager = [[CMMotionManager alloc] init];
     }
 
-    if ([self.motionManager isAccelerometerAvailable] == YES) {
+    if ([self.motionManager isDeviceMotionAvailable] == YES) {
         // Assign the update interval to the motion manager and start updates
-        [self.motionManager setAccelerometerUpdateInterval:kAccelerometerInterval/1000];  // expected in seconds
+        [self.motionManager setDeviceMotionUpdateInterval:kDeviceMotionInterval/1000];  // expected in seconds
         __weak CDVAccelerometer* weakSelf = self;
-        [self.motionManager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMAccelerometerData *accelerometerData, NSError *error) {
-            weakSelf.x = accelerometerData.acceleration.x;
-            weakSelf.y = accelerometerData.acceleration.y;
-            weakSelf.z = accelerometerData.acceleration.z;
+        [self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMDeviceMotion *motion, NSError *error) {
+            weakSelf.x = motion.gravity.x + motion.userAcceleration.x;
+            weakSelf.y = motion.gravity.y + motion.userAcceleration.y;
+            weakSelf.z = motion.gravity.z + motion.userAcceleration.z;
+            weakSelf.userAccelerationX = motion.userAcceleration.x;
+            weakSelf.userAccelerationY = motion.userAcceleration.y;
+            weakSelf.userAccelerationZ = motion.userAcceleration.z;
+            weakSelf.rotationX = motion.rotationRate.x;
+            weakSelf.rotationY = motion.rotationRate.y;
+            weakSelf.rotationZ = motion.rotationRate.z;
+            weakSelf.yaw = motion.attitude.yaw;
+            weakSelf.pitch = motion.attitude.pitch;
+            weakSelf.roll = motion.attitude.roll;
             weakSelf.timestamp = ([[NSDate date] timeIntervalSince1970] * 1000);
             [weakSelf returnAccelInfo];
         }];
@@ -90,10 +117,10 @@
 
         NSLog(@"Running in Simulator? All gyro tests will fail.");
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_INVALID_ACTION messageAsString:@"Error. Accelerometer Not Available."];
-        
+
         [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
     }
-    
+
 }
 
 - (void)onReset
@@ -116,11 +143,20 @@
 - (void)returnAccelInfo
 {
     // Create an acceleration object
-    NSMutableDictionary* accelProps = [NSMutableDictionary dictionaryWithCapacity:4];
+    NSMutableDictionary* accelProps = [NSMutableDictionary dictionaryWithCapacity:13];
 
     [accelProps setValue:[NSNumber numberWithDouble:self.x * kGravitationalConstant] forKey:@"x"];
     [accelProps setValue:[NSNumber numberWithDouble:self.y * kGravitationalConstant] forKey:@"y"];
     [accelProps setValue:[NSNumber numberWithDouble:self.z * kGravitationalConstant] forKey:@"z"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.userAccelerationX * kGravitationalConstant] forKey:@"userAccelerationX"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.userAccelerationY * kGravitationalConstant] forKey:@"userAccelerationY"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.userAccelerationZ * kGravitationalConstant] forKey:@"userAccelerationZ"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.rotationX] forKey:@"rotationX"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.rotationY] forKey:@"rotationY"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.rotationZ] forKey:@"rotationZ"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.yaw] forKey:@"yaw"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.pitch] forKey:@"pitch"];
+    [accelProps setValue:[NSNumber numberWithDouble:self.roll] forKey:@"roll"];
     [accelProps setValue:[NSNumber numberWithDouble:self.timestamp] forKey:@"timestamp"];
 
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:accelProps];
